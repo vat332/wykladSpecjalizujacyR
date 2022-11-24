@@ -1,0 +1,371 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+#1.Wczytać zestaw danych, który odpowiada ostatniej cyfrze z numeru albumu, do systemu R.
+#Ladowanie bibliotek
+library(tidyverse)
+library(mlbench)
+library(ggplot2)
+library(moments)
+library(caret)
+dataset <- read.csv("daneS/imports-85.data",sep=",", header=FALSE)
+colnames(dataset) <- c("symboling","normalized.losses","make","fuel.type","aspiration","num.of.doors","body.style","drive.wheels","engine.location","wheel.base","length","width","height","curb.weight","engine.type","num.of.cylinders","engine.size","fuel.system","bore","stroke","compression.ratio","horsepower","peak.rpm","city.mpg","highway.mpg","price")
+head(dataset)
+
+```
+
+
+
+```{r}
+# 2.Wykonać badania eksploracyjne (EDA, ang. exploratory data analysis) zestawu danych.
+
+
+#Wymiar danych 205 wierszy oraz 26 kolumn
+dim(dataset)
+cat("\n")
+
+#Struktura danych
+str(dataset)
+cat("\n")
+sapply(dataset, class)
+
+cat("\n\nUdział producentów w ilości samochodów\n\n")
+make <- dataset$make
+cbind(freq=table(make), percentage=prop.table(table(make))*100)
+
+cat("\n\nCzęstość występowania rodzajów paliw\n\n")
+fuel.type <- dataset$fuel.type
+cbind(freq=table(fuel.type), percentage=prop.table(table(fuel.type))*100)
+
+cat("\n\nCzęstość występowania maksymalnych obrotów\n\n")
+peak.rpm <- dataset$peak.rpm
+cbind(freq=table(peak.rpm), percentage=prop.table(table(peak.rpm))*100)
+
+cat("\n\nCzęstość występowania rodzajów nadwozia\n\n")
+body.style <- dataset$body.style
+cbind(freq=table(body.style), percentage=prop.table(table(body.style))*100)
+
+cat("\n\nCzęstość występowania ilości drzwi\n\n")
+num.of.doors <- dataset$num.of.doors
+cbind(freq=table(num.of.doors), percentage=prop.table(table(num.of.doors))*100)
+
+cat("\n\nCzęstość występowania systemów paliwa\n\n")
+fuel.system <- dataset$fuel.system
+cbind(freq=table(fuel.system), percentage=prop.table(table(fuel.system))*100)
+
+cat("\n\nCzęstość występowania miejsca na silnik\n\n")
+engine.location <- dataset$engine.location
+cbind(freq=table(engine.location), percentage=prop.table(table(engine.location))*100)
+
+cat("\n\nCzęstość występowania rodzaju podawania powietrza\n\n")
+aspiration <- dataset$aspiration
+cbind(freq=table(aspiration), percentage=prop.table(table(aspiration))*100)
+
+cat("\n\nCzęstość występowania stylu napędu \n\n")
+drive.wheels <- dataset$drive.wheels
+cbind(freq=table(drive.wheels), percentage=prop.table(table(drive.wheels))*100)
+
+cat("\n\nCzęstość występowania rodzaju slinków \n\n")
+engine.type <- dataset$engine.type
+cbind(freq=table(engine.type), percentage=prop.table(table(engine.type))*100)
+
+cat("\n\nCzęstość występowania ilości cylindrów \n\n")
+num.of.cylinders <- dataset$num.of.cylinders
+cbind(freq=table(num.of.cylinders), percentage=prop.table(table(num.of.cylinders))*100)
+
+cat("\n\n Podstawowe informacje o każdej kolumnie\n\n")
+summary(dataset)
+
+
+```
+
+```{r}
+#Zad 2 wykresy
+#Zmiana kolejności cylidndrów
+dataset$num.of.cylinders <- factor(dataset$num.of.cylinders, levels = c("two", "three","four","five","six","eight","twelve"))
+
+#Popularonść napędów
+
+ggplot(data = dataset) +
+	geom_bar(mapping = aes(x =  drive.wheels)) +
+	labs(title = "Popularność napędów", 
+	x="Rodzaj napędu", y ="Liczba samochodów")
+
+
+#Popularonść systemów paliwa
+
+ggplot(data = dataset) +
+	geom_bar(mapping = aes(x =  fuel.system)) +
+	labs(title = "Popularność systemów paliwa", 
+	x="System paliwa", y ="Liczba samochodów")
+
+#Popularonść drzwi 2 lub 4
+
+ggplot(data = dataset) +
+	geom_bar(mapping = aes(x =  num.of.doors)) +
+	labs(title = "Popularność ilości drzwi", 
+	x="Ilość drzwi", y ="Liczba samochodów")
+
+#Popularonść umiejscowienia silnika
+
+ggplot(data = dataset) +
+	geom_bar(mapping = aes(x =  engine.location)) +
+	labs(title = "Popularonść umiejscowienia silnika", 
+	x="Umimiejscowienie silnika", y ="Liczba samochodów")
+
+#Popularność typu silnika
+
+ggplot(data = dataset) +
+	geom_bar(mapping = aes(x =  engine.type)) +
+	labs(title = "Popularonść typu silnia", 
+	x="Typ silnika", y ="Liczba samochodów")
+
+
+#Popularność ilości cynlindrów
+
+ggplot(data = dataset) +
+	geom_bar(mapping = aes(x =  num.of.cylinders)) +
+	labs(title = "Popularonść ilości cylindrów", 
+	x="Ilość cylindrów", y ="Liczba samochodów")
+
+#Popularność typów doładowania
+
+ggplot(data = dataset) +
+	geom_bar(mapping = aes(x =  aspiration)) +
+	labs(title = "Popularonść typu doładowania", 
+	x="Typ doładowania", y ="Liczba samochodów")
+
+#Popularoność typu nawodzia
+ggplot(data = dataset) +
+	geom_bar(mapping = aes(x = body.style)) +
+	labs(title = "Popularoność typów nadwozia",
+	     x = "Typ nadwozia", y = "Liczba samochodów") +
+  theme(axis.text.x = element_text(angle=0,vjust=0.6))
+
+
+#Popularoność paliw
+ggplot(data = dataset) +
+	geom_bar(mapping = aes(x = fuel.type)) +
+	labs(title = "Popularoność paliw",
+	     x = "Paliwo", y = "Liczba samochodów") +
+  theme(axis.text.x = element_text(angle=0,vjust=0.6))
+
+
+# Średnie spalanie w mieście dla samochodów
+ggplot(data = dataset) +
+	geom_bar(mapping = aes(x = city.mpg)) +
+	labs(title = "Średnie spalanie w mieście dla samochodów", 
+	x="Mile na galon", y ="Liczba samochodów")
+
+# Średnie spalanie na autostradzie dla samochodów
+ggplot(data = dataset) +
+	geom_bar(mapping = aes(x = highway.mpg)) +
+	labs(title = "Średnie spalanie na autostradzie dla samochodów", 
+	x="Mile na galon", y ="Liczba samochodów")
+
+theme_set(theme_bw())
+
+#Stosunek marek do ilości samochodów
+ggplot(data = dataset) +
+	geom_bar(mapping = aes(x = make)) +
+	labs(title = "Stosunek marek do ilości samochodów",
+	     x = "Marki", y = "Liczba samochodów") +
+  theme(axis.text.x = element_text(angle=90,vjust=0.6))
+
+
+#Wykres punktowy przedstawiający korelację między pojemnością silnika a spalaniem w mieście
+ggplot(data = dataset, mapping = aes(x = city.mpg, y = engine.size)) +
+	geom_point() +
+  geom_smooth() +
+	labs(title = "Korelacja pojemności silnika do spalania w mieście", 
+	x="Spalanie w mieście (Mile na galon)", y ="Pojemność silnka (w calach sześciennych )")
+
+
+#Korelacja pojemności silnika do spalania na autostradzie
+ggplot(data = dataset, mapping = aes(x = highway.mpg, y = engine.size)) +
+	geom_point() +
+	geom_smooth() +
+	labs(title = "Korelacja pojemności silnika do spalania na autostradzie", 
+	x="Spalanie na autostradzie (Mile na galon)", y ="Pojemność silnika (w calach sześciennych)")
+
+#Korelacja wysokości do spalania na autostradzie
+ggplot(data = dataset, mapping = aes(x = highway.mpg, y = height)) +
+	geom_point() +
+	geom_smooth() +
+	labs(title = "Korelacja wysokości samochodu do spalania na autostradzie", 
+	x="Spalanie na autostradzie (Mile na galon)", y ="Wysokość samochodu")
+
+#Korelacja szerokości do spalania na autostradzie
+ggplot(data = dataset, mapping = aes(x = highway.mpg, y = width)) +
+	geom_point() +
+	geom_smooth() +
+	labs(title = "Korelacja szerkości samochodu do spalania na autostradzie", 
+	x="Spalanie na autostradzie (Mile na galon)", y ="Szerokość samochodu")
+
+#Korelacja długości do spalania na autostradzie
+ggplot(data = dataset, mapping = aes(x = highway.mpg, y = length)) +
+	geom_point() +
+	geom_smooth() +
+	labs(title = "Korelacja długości samochodu do spalania na autostradzie", 
+	x="Spalanie na autostradzie (Mile na galon)", y ="Długość samochodu")
+
+
+#Korelacja wysokości do spalania w mieście
+ggplot(data = dataset, mapping = aes(x = city.mpg, y = height)) +
+	geom_point() +
+	geom_smooth() +
+	labs(title = "Korelacja wysokości samochodu do spalania w mieście", 
+	x="Spalanie w mieście (Mile na galon)", y ="Wysokość samochodu")
+
+#Korelacja szerokości do spalania w mieście
+ggplot(data = dataset, mapping = aes(x = city.mpg, y = width)) +
+	geom_point() +
+	geom_smooth() +
+	labs(title = "Korelacja szerkości samochodu do spalania w mieście", 
+	x="Spalanie w mieście (Mile na galon)", y ="Szerokość samochodu")
+
+#Korelacja długości do spalania na autostradzie
+ggplot(data = dataset, mapping = aes(x = city.mpg, y = length)) +
+	geom_point() +
+	geom_smooth() +
+	labs(title = "Korelacja długości samochodu do spalania w mieście", 
+	x="Spalanie w mieście (Mile na galon)", y ="Długość samochodu")
+
+
+#Korelacja ilości cylindrów do spalania na autostradzie
+theme_set(theme_bw())
+g <- ggplot(dataset, aes(y = highway.mpg, x = num.of.cylinders))
+g + geom_jitter(col="tomato3", show.legend=F) +
+  labs(subtitle="Spalanie wyrażone jest w Milach na galon", 
+       x="Liczba cylindrów", 
+       y="Spalanie na autostradzie", 
+       title="Korelacja ilości cylindrów do spalania na autostradzie")
+
+
+#Korelacja ilości cylindrów do spalania na autostradzie
+theme_set(theme_bw())
+g <- ggplot(dataset, aes(y = highway.mpg, x = num.of.cylinders))
+g + geom_jitter(col="tomato3", show.legend=F) +
+  labs(subtitle="Spalanie wyrażone jest w Milach na galon", 
+       x="Liczba cylindrów", 
+       y="Spalanie na autostradzie", 
+       title="Korelacja ilości cylindrów do spalania na autostradzie")
+
+
+#Korelacja stopnia sprężania do typu paliwa
+theme_set(theme_bw())
+g <- ggplot(dataset, aes(y = fuel.type, x = compression.ratio))
+g + geom_jitter(col="tomato3", show.legend=F) +
+  labs(
+       x="Stopień sprężania", 
+       y="Typ paliwa", 
+       title="Korelacja stopnia sprężania do typu paliwa")
+
+
+#Korelacja sposobu doładowania do spalania na autostradzie
+theme_set(theme_bw())
+g <- ggplot(dataset, aes(y = highway.mpg, x = aspiration))
+g + geom_jitter(col="tomato3", show.legend=F) +
+  labs(subtitle="Spalanie wyrażone jest w Milach na galon", 
+       x="Doładowanie", 
+       y="Spalanie na autostradzie", 
+       title="Korelacja sposobu doładowania do spalania na autostradzie")
+
+#Korelacja sposobu doładowania do spalania w mieście
+theme_set(theme_bw())
+g <- ggplot(dataset, aes(y = city.mpg, x = aspiration))
+g + geom_jitter(col="tomato3", show.legend=F) +
+  labs(subtitle="Spalanie wyrażone jest w Milach na galon", 
+       x="Doładowanie", 
+       y="Spalanie w mieście", 
+       title="Korelacja sposobu doładowania do spalania w mieście")
+
+
+# masy własnej do spalania w mieście
+theme_set(theme_bw())
+g <- ggplot(dataset, aes(x = curb.weight, y = city.mpg))
+g + geom_jitter(width = .5, size=1) +
+  labs(subtitle="Masa wyrażona w kg, a spalanie w Milach na gallon", 
+       x="Masa własna", 
+       y="Spalanie", 
+       title="Znacznie masy własnej do spalania w mieście")
+
+# masy własnej do spalania na autostradzie
+theme_set(theme_bw())
+g <- ggplot(dataset, aes(x = curb.weight, y = highway.mpg))
+g + geom_jitter(width = .5, size=1) +
+  labs(subtitle="Masa wyrażona w kg, a spalanie w Milach na gallon", 
+       x="Masa własna", 
+       y="Spalanie", 
+       title="Znacznie masy własnej do spalania na autostradzie")
+
+#Korelacja rodzaju napędu na spalanie w mieście
+theme_set(theme_bw())
+g <- ggplot(dataset, aes(x = drive.wheels, y = city.mpg))
+g + geom_jitter(width = .5, size=1) +
+  labs(subtitle="spalanie wyrażone w Milach na gallon", 
+       x="Typ napędu", 
+       y="Spalanie", 
+       title="Korelacja rodzaju napędu na spalanie w mieście")
+
+#Korelacja rodzaju napędu na spalanie na autostradzie
+theme_set(theme_bw())
+g <- ggplot(dataset, aes(x = drive.wheels, y = highway.mpg))
+g + geom_jitter(width = .5, size=1) +
+  labs(subtitle="spalanie wyrażone w Milach na gallon", 
+       x="Typ napędu", 
+       y="Spalanie", 
+       title="Korelacja rodzaju napędu na spalanie na autostradzie")
+
+```
+
+```{r}
+# Zadanie 3
+#Wyznaczyć cechę decyzyjną i cechy objaśniające.
+#Cechą decyzjną będzie spalanie w mieście lub na autostradzie, gdyż ma korelacje z cechami typu:
+#pojemność silinka, szerkość samochodu, wysokość samochodu, długość samochodu itp
+#
+```
+
+
+```{r}
+#Zadanie 4
+regresja.liniowa.miasto = lm(city.mpg~engine.size + num.of.cylinders + curb.weight + width+ length + drive.wheels, data = dataset)
+summary(regresja.liniowa.miasto)
+cat("\n\n\n")
+regresja.liniowa.autostrada = lm(highway.mpg~engine.size + curb.weight + width + length+ drive.wheels + num.of.cylinders, data = dataset)
+summary(regresja.liniowa.autostrada)
+
+```
+
+```{r}
+#Zadanie 5
+#Dla miasta
+predicted_data <-  predict(regresja.liniowa.miasto, dataset, interval = 'confidence')
+df_predicted_data <- as.data.frame.matrix(predicted_data)
+df_mpg_data <- as.data.frame.matrix(dataset)
+sqrt(mean((df_mpg_data$city.mpg - df_predicted_data$fit)^2))
+#Dla autostrady
+predicted_data2 <-  predict(regresja.liniowa.autostrada, dataset, interval = 'confidence')
+df_predicted_data2 <- as.data.frame.matrix(predicted_data2)
+df_mpg_data2 <- as.data.frame.matrix(dataset)
+sqrt(mean((df_mpg_data2$highway.mpg - df_predicted_data$fit)^2))
+```
+```{r}
+#Zadanie 6
+library(caret)
+
+ctrl <- trainControl(method ="cv", number = 10)
+model <- train(city.mpg~engine.size + num.of.cylinders + curb.weight + width + engine.size + height + drive.wheels, data = df_mpg_data, 
+	method = "lm", trControl = ctrl)
+print(model)
+
+#Dla autostrady
+ctrl2 <- trainControl(method ="cv", number = 10)
+model2 <- train(highway.mpg~engine.size + num.of.cylinders + curb.weight + width + engine.size + height + drive.wheels, data = df_mpg_data2, 
+	method = "lm", trControl = ctrl)
+print(model2)
+```
+
