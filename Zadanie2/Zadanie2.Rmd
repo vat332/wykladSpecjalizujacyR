@@ -1,0 +1,133 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+data <- read.csv("dane/letter-recognition.data")
+head(data)
+
+str(data)
+
+table(data$)
+```
+
+```{r}
+library(ggplot2)
+
+mydata <- read.csv(file="dane/letter-recognition.data", sep=",")
+attach(mydata)
+colnames(mydata) <- c("T","X1","X2","X3","X4","X5","X6","X7","X8","X9","X10","X11","X12","X13","X14","X15","X16")
+dim(mydata) # Dimensions of the data
+head(mydata) # To understand the column names
+summary(mydata) # Summary of the data
+
+
+#---------- Basic Histograms ------------#
+
+ggplot(data=mydata,aes(X1)) + geom_histogram(breaks=seq(0,15,by=1),color="black",fill="orange") + labs(x="X1",y="Count")
+
+ggplot(data=mydata,aes(X2)) + geom_histogram(breaks=seq(0,15,by=1),color="black",fill="orange") + labs(x="X2",y="Count")
+
+ggplot(data=mydata,aes(X3)) + geom_histogram(breaks=seq(0,15,by=1),color="black",fill="orange") + labs(x="X3",y="Count")
+
+ggplot(data=mydata,aes(X4)) + geom_histogram(breaks=seq(0,15,by=1),color="black",fill="orange") + labs(x="X3",y="Count")
+
+ggplot(data=mydata,aes(X5)) + geom_histogram(breaks=seq(0,15,by=1),color="black",fill="orange") + labs(x="X5",y="Count")
+
+ggplot(data=mydata,aes(X6)) + geom_histogram(breaks=seq(0,15,by=1),color="black",fill="orange") + labs(x="X6",y="Count")
+
+ggplot(data=mydata,aes(X7)) + geom_histogram(breaks=seq(0,15,by=1),color="black",fill="orange") + labs(x="X3",y="Count")
+
+ggplot(data=mydata,aes(X8)) + geom_histogram(breaks=seq(0,15,by=1),color="black",fill="orange") + labs(x="X8",y="Count")
+
+ggplot(data=mydata,aes(X9)) + geom_histogram(breaks=seq(0,15,by=1),color="black",fill="orange") + labs(x="X3",y="Count")
+
+ggplot(data=mydata,aes(X10)) + geom_histogram(breaks=seq(0,15,by=1),color="black",fill="orange") + labs(x="X10",y="Count")
+
+ggplot(data=mydata,aes(X11)) + geom_histogram(breaks=seq(0,15,by=1),color="black",fill="orange") + labs(x="X11",y="Count")
+
+ggplot(data=mydata,aes(X12)) + geom_histogram(breaks=seq(0,15,by=1),color="black",fill="orange") + labs(x="X12",y="Count")
+
+ggplot(data=mydata,aes(X13)) + geom_histogram(breaks=seq(0,15,by=1),color="black",fill="orange") + labs(x="X13",y="Count")
+
+ggplot(data=mydata,aes(X14)) + geom_histogram(breaks=seq(0,15,by=1),color="black",fill="orange") + labs(x="X14",y="Count")
+
+ggplot(data=mydata,aes(X15)) + geom_histogram(breaks=seq(0,15,by=1),color="black",fill="orange") + labs(x="X15",y="Count")
+
+ggplot(data=mydata,aes(X16)) + geom_histogram(breaks=seq(0,15,by=1),color="black",fill="orange") + labs(x="X16",y="Count")
+
+#ggplot(data=mydata,aes(X17)) + geom_histogram(breaks=seq(0,15,by=1),color="black",fill="orange") + labs(x="X16",y="Count")
+
+
+ggplot(mydata,aes(x="",y=X1)) + geom_boxplot(fill = "#56B4E9", color = "black",width=0.5) + theme(axis.title.y=element_blank()) + labs(x="X1")
+
+ggplot(mydata,aes(x="",y=X2)) + geom_boxplot(fill = "#56B4E9", color = "black")+ theme(axis.title.y=element_blank()) + labs(x="X2")
+
+ggplot(mydata,aes(x="",y=X3)) + geom_boxplot(fill = "#56B4E9", color = "black")+ theme(axis.title.y=element_blank()) + labs(x="X3")
+
+ggplot(mydata,aes(x="",y=X4)) + geom_boxplot(fill = "#56B4E9", color = "black")+ theme(axis.title.y=element_blank()) + labs(x="X4")
+
+
+ggplot(mydata,aes(x="",y=X5)) + geom_boxplot(fill = "#56B4E9", color = "black",width=0.5) + theme(axis.title.y=element_blank()) + labs(x="X5")
+
+ggplot(mydata,aes(x="",y=X6)) + geom_boxplot(fill = "#56B4E9", color = "black")+ theme(axis.title.y=element_blank()) + labs(x="X6")
+
+ggplot(mydata,aes(x="",y=X7)) + geom_boxplot(fill = "#56B4E9", color = "black")+ theme(axis.title.y=element_blank()) + labs(x="X7")
+
+ggplot(mydata,aes(x="",y=X8)) + geom_boxplot(fill = "#56B4E9", color = "black")+ theme(axis.title.y=element_blank()) + labs(x="X8")
+
+
+ggplot(mydata,aes(x="",y=X9)) + geom_boxplot(fill = "#56B4E9", color = "black",width=0.5) + theme(axis.title.y=element_blank()) + labs(x="X9")
+
+ggplot(mydata,aes(x="",y=X10)) + geom_boxplot(fill = "#56B4E9", color = "black")+ theme(axis.title.y=element_blank()) + labs(x="X10")
+
+ggplot(mydata,aes(x="",y=X11)) + geom_boxplot(fill = "#56B4E9", color = "black")+ theme(axis.title.y=element_blank()) + labs(x="X11")
+
+ggplot(mydata,aes(x="",y=X12)) + geom_boxplot(fill = "#56B4E9", color = "black")+ theme(axis.title.y=element_blank()) + labs(x="X12")
+
+
+ggplot(mydata,aes(x="",y=X4)) + geom_boxplot(fill = "#56B4E9", color = "black",width=0.5) + theme(axis.title.y=element_blank()) + labs(x="X13")
+
+ggplot(mydata,aes(x="",y=X14)) + geom_boxplot(fill = "#56B4E9", color = "black")+ theme(axis.title.y=element_blank()) + labs(x="X14")
+
+ggplot(mydata,aes(x="",y=X15)) + geom_boxplot(fill = "#56B4E9", color = "black")+ theme(axis.title.y=element_blank()) + labs(x="X15")
+
+ggplot(mydata,aes(x="",y=X16)) + geom_boxplot(fill = "#56B4E9", color = "black")+ theme(axis.title.y=element_blank()) + labs(x="X16")
+```
+
+
+```{r}
+library(gmodels)
+n = nrow(mydata)
+labels <- t1[,1]
+train = sample(1:n, size = round(0.7*n),replace = FALSE)
+t1 = mydata[train,]
+t2 = mydata[-train,]
+
+n1 = nrow(t1)
+n2 = nrow(t2)
+library(class)
+labels <- t1[,1]
+error.rate <- numeric(10)
+for(i in 1:10)
+{
+  knn.pred <- knn(t1[,-1],t2[,-1],labels, k = i)
+  error.rate[i] <- 1-mean(knn.pred == t2[,1])
+}
+plot(1:10, error.rate,"b", pch = 20, col = "red", xlab = "K", ylab = "Error Rate")
+
+pred <- knn(t1[,-1],t2[,-1],labels, k = 1)
+table(pred,t2$T)
+pred <- knn(t1[,-1],t2[,-1],labels, k = 2)
+table(pred,t2$T)
+pred <- knn(t1[,-1],t2[,-1],labels, k = 3)
+table(pred,t2$T)
+pred <- knn(t1[,-1],t2[,-1],labels, k = 4)
+table(pred,t2$T)
+CrossTable(x=t2$T,y=pred, prop.chisq = FALSE)
+
+
+```
+
+
