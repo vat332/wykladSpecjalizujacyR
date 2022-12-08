@@ -130,4 +130,58 @@ CrossTable(x=t2$T,y=pred, prop.chisq = FALSE)
 
 ```
 
+```{r}
+library(caret)
+#Generating  fake estimates of a pretend classifier#
+set.seed(0)
+y <- sample(c(T,F),100,replace=T)
+m1 <- y
+m1_err <- sample(1:100,sample(15:30,1))
+m1[m1_err]=!m1[m1_err]
+
+y <- factor(y)
+m1 <- factor(m1)
+
+cm1 <- confusionMatrix(m1,y,positive="TRUE")
+
+#ROC curve#
+m2 <- sample(c(T,F),100,replace=T)
+m2 <- factor(m2)
+cm2 <- confusionMatrix(m2,y,positive="TRUE")
+
+tab1 <- cm1$table
+tab2 <- cm2$table
+FPR1 <- tab1[1,2]/sum(tab1[1,])
+FPR2 <- tab2[1,2]/sum(tab2[1,])
+
+TPR1 <- tab1[2,2]/sum(tab1[2,])
+TPR2 <- tab2[2,2]/sum(tab2[2,])
+
+
+plot(function(x)x,xlim=c(0,1),ylim=c(0,1),xlab="False Positive Rate",
+ylab="True Positive Rate",col="red")
+
+points(FPR1,TPR1,col="green")
+points(FPR2,TPR2,col="blue")
+
+############################
+
+rm(list = ls())
+
+library(pROC)
+library(ggplot2)
+
+# Read in simulated data
+sim_dat <- read.csv('dane/letter-recognition.data', header = T)
+head(sim_dat)
+sim_roc <- roc(response = sim_dat$T,
+               predictor = sim_dat$X2,
+               levels = c('A','W'))
+# Calculate AUC using pROC::auc()
+auc(sim_roc)
+
+ggroc(sim_roc, legacy.axes = TRUE) +
+  labs(x = 'False-positive rate', y = 'True-positive rate', title = 'Simulated ROC curve') +
+  annotate('text', x = .5, y = .5, label = paste0('AUC: ',round(auc(sim_roc), digits = 2)))
+```
 
