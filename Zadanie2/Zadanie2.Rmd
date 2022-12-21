@@ -4,24 +4,24 @@ output: html_notebook
 ---
 
 ```{r}
-data <- read.csv("dane/letter-recognition.data")
-head(data)
-
-str(data)
-```
-
-```{r}
 library(ggplot2)
-
-mydata <- read.csv(file="dane/letter-recognition.data", sep=",")
-attach(mydata)
+library(pROC)
+library(gmodels)
+library(class)
+library(caret)
+# 1. Wczytać zestaw danych, który odpowiada ostatniej cyfrze z numeru albumu, do systemu R.
+mydata <- read.csv("dane/letter-recognition.data", stringsAsFactors = FALSE, sep=",")
 colnames(mydata) <- c("T","X1","X2","X3","X4","X5","X6","X7","X8","X9","X10","X11","X12","X13","X14","X15","X16")
+head(mydata)
+str(mydata)
 dim(mydata)
 head(mydata)
 summary(mydata)
 
-
-
+#################
+#####WYKRESY#####
+#################
+# 2.Wykonać badania eksploracyjne (EDA, ang. exploratory data analysis) zestawu danych.
 ggplot(data=mydata,aes(X1)) + geom_histogram(breaks=seq(0,15,by=1),color="black",fill="orange") + labs(x="x-box poziome położenie prostokąta (liczba całkowita)",y="Liczba")
 
 ggplot(data=mydata,aes(X2)) + geom_histogram(breaks=seq(0,15,by=1),color="black",fill="orange") + labs(x="y-box pionowe położenie prostokąta (liczba całkowita)",y="Liczba")
@@ -90,89 +90,183 @@ ggplot(mydata,aes(x="",y=X14)) + geom_boxplot(fill = "#ABC8C2", color = "black")
 ggplot(mydata,aes(x="",y=X15)) + geom_boxplot(fill = "#ABC8C2", color = "black")+ theme(axis.title.y=element_blank()) + labs(x="y-ege średnia liczba krawędzi od dołu do góry (liczba całkowita)")
 
 ggplot(mydata,aes(x="",y=X16)) + geom_boxplot(fill = "#ABC8C2", color = "black")+ theme(axis.title.y=element_blank()) + labs(x="yegvx korelacja y-ege z x (liczba całkowita)")
+
+```
+```{r}
+# 3. Cecha decyzyjna to T czyli 1) a reszta to objaśniająca X1-X16
+# 4. Stworzyć klasyfikator używający algorytmu KNN.
+
+table(mydata$T)
+
+mydata$T <- factor(mydata$T, levels = c("A", "B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"),
+                         labels = c("1-type", "2-type","3-type","4-type","5-type","6-type","7-type","8-type","9-type","10-type","11-type","12-type","13-type","14-type","15-type","16-type","17-type","18-type","19-type","20-type","21-type","22-type","23-type","24-type","25-type","26-type"))
+round(prop.table(table(mydata$T)) * 100, digits = 1)
+summary(mydata[c("X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "X9", "X10", "X11", "X12", "X13", "X14", "X15", "X16")])
+
+normalize <- function(x) {
+   return ((x - min(x)) / (max(x) - min(x))) }
+
+normalize(c(1, 2, 3, 4, 5))
+normalize(c(10, 20, 30, 40, 50))
+mydatanew <- as.data.frame(lapply(mydata[2:16], normalize))
+summary(mydatanew$X1)
+# create training and test data
+mydata_train <- mydatanew[1:1000, ]
+mydata_test <- mydatanew[1001:19999, ]
+
+# create labels for training and test data
+
+mydata_train_labels <- mydata[1:1000, 1]
+mydata_test_labels <- mydata[1001:19999, 1]
+
+## Step 3: Training a model on the data ----
+
+# load the "class" library
+library(class)
+
+mydata_test_pred <- knn(train = mydata_train, test = mydata_test,
+                      cl = mydata_train_labels, k = 21)
+
+## Step 4: Evaluating model performance ----
+
+# load the "gmodels" library
+library(gmodels)
+# Create the cross tabulation of predicted vs. actual
+
+CrossTable(x = mydata_test_labels, y = mydata_test_pred,
+           prop.chisq = FALSE)
+
+## Step 5: Improving model performance ----
+
+# use the scale() function to z-score standardize a data frame
+mydata_z <- as.data.frame(scale(mydata[-1]))
+
+# confirm that the transformation was applied correctly
+#summary(wbcd_z$area_mean)
+
+# create training and test datasets
+mydata_train <- mydata_z[1:1000, ]
+mydata_test <- mydata_z[1001:19999, ]
+
+# re-classify test cases
+mydata_test_pred <- knn(train = mydata_train, test = mydata_test,
+                      cl = mydata_train_labels, k = 21)
+
+# Create the cross tabulation of predicted vs. actual
+CrossTable(x = mydata_test_labels, y = mydata_test_pred,
+           prop.chisq = FALSE)
 ```
 
-
 ```{r}
-library(gmodels)
-library(class)
+#5. Przeprowadzić klasyfikację dla różnych wartości K. Dla każdej wartości podać miarę accuracy (dokładności) klasyfikatora.
+mydata_train <- mydatanew[1:1000, ]
+mydata_test <- mydatanew[1001:19999, ]
+
+mydata_test_pred <- knn(train = mydata_train, test = mydata_test, cl = mydata_train_labels, k=1)
+CrossTable(x = mydata_test_labels, y = mydata_test_pred, prop.chisq=FALSE)
+#Miara accuracy (dokładności) klasyfikatora.
+confusion=table(mydata_test_pred,mydata_test_labels)
+sum(diag(confusion))/nrow(mydata_test)
+
+mydata_test_pred <- knn(train = mydata_train, test = mydata_test, cl = mydata_train_labels, k=3)
+CrossTable(x = mydata_test_labels, y = mydata_test_pred, prop.chisq=FALSE)
+#Miara accuracy (dokładności) klasyfikatora.
+confusion=table(mydata_test_pred,mydata_test_labels)
+sum(diag(confusion))/nrow(mydata_test)
+
+mydata_test_pred <- knn(train = mydata_train, test = mydata_test, cl = mydata_train_labels, k=13)
+CrossTable(x = mydata_test_labels, y = mydata_test_pred, prop.chisq=FALSE)
+#Miara accuracy (dokładności) klasyfikatora.
+confusion=table(mydata_test_pred,mydata_test_labels)
+sum(diag(confusion))/nrow(mydata_test)
+
+mydata_test_pred <- knn(train = mydata_train, test = mydata_test, cl = mydata_train_labels, k=16)
+CrossTable(x = mydata_test_labels, y = mydata_test_pred, prop.chisq=FALSE)
+#Miara accuracy (dokładności) klasyfikatora.
+confusion=table(mydata_test_pred,mydata_test_labels)
+sum(diag(confusion))/nrow(mydata_test)
+
+mydata_test_pred <- knn(train = mydata_train, test = mydata_test, cl = mydata_train_labels, k=19)
+CrossTable(x = mydata_test_labels, y = mydata_test_pred, prop.chisq=FALSE)
+#Miara accuracy (dokładności) klasyfikatora.
+confusion=table(mydata_test_pred,mydata_test_labels)
+sum(diag(confusion))/nrow(mydata_test)
+
+mydata_test_pred <- knn(train = mydata_train, test = mydata_test, cl = mydata_train_labels, k=26)
+CrossTable(x = mydata_test_labels, y = mydata_test_pred, prop.chisq=FALSE)
+#Miara accuracy (dokładności) klasyfikatora.
+confusion=table(mydata_test_pred,mydata_test_labels)
+sum(diag(confusion))/nrow(mydata_test)
+
+
 n = nrow(mydata)
 train = sample(1:n, size = round(0.7*n),replace = FALSE)
 t1 = mydata[train,]
 t2 = mydata[-train,]
-
 n1 = nrow(t1)
 n2 = nrow(t2)
 labels <- t1[,1]
 error.rate <- numeric(10)
-for(i in 1:10)
+for(i in 1:26)
 {
   knn.pred <- knn(t1[,-1],t2[,-1],labels, k = i)
   error.rate[i] <- 1-mean(knn.pred == t2[,1])
 }
-plot(1:10, error.rate,"b", pch = 20, col = "red", xlab = "K", ylab = "Error Rate")
-
+plot(1:26, error.rate,"b", pch = 20, col = "red", xlab = "K", ylab = "Error Rate")
 pred <- knn(t1[,-1],t2[,-1],labels, k = 1)
-table(pred,t2$T)
-pred <- knn(t1[,-1],t2[,-1],labels, k = 2)
 table(pred,t2$T)
 pred <- knn(t1[,-1],t2[,-1],labels, k = 3)
 table(pred,t2$T)
-pred <- knn(t1[,-1],t2[,-1],labels, k = 20)
+pred <- knn(t1[,-1],t2[,-1],labels, k = 13)
+table(pred,t2$T)
+pred <- knn(t1[,-1],t2[,-1],labels, k = 16)
+table(pred,t2$T)
+pred <- knn(t1[,-1],t2[,-1],labels, k = 19)
+table(pred,t2$T)
+pred <- knn(t1[,-1],t2[,-1],labels, k = 26)
 table(pred,t2$T)
 CrossTable(x=t2$T,y=pred, prop.chisq = FALSE)
 
-
 ```
 
+
 ```{r}
+#6. Oszacować miary oceny klasyfikacji: Accuracy, Recall (Sensitivity), Specificity, false positive rate FPR, false discovery rate FDR, precyzję pozytywną, precyzję negatywną, F1– i Fbeta-score, współczynnik korelacji Matthews’a.
 library(caret)
 set.seed(0)
 y <- sample(c(T,F),100,replace=T)
 m1 <- y
 m1_err <- sample(1:100,sample(15:30,1))
 m1[m1_err]=!m1[m1_err]
-
 y <- factor(y)
 m1 <- factor(m1)
-
 cm1 <- confusionMatrix(m1,y,positive="TRUE")
-
 #ROC curve#
 m2 <- sample(c(T,F),100,replace=T)
 m2 <- factor(m2)
 cm2 <- confusionMatrix(m2,y,positive="TRUE")
-
 tablica <- cm1$table
 tablica1 <- cm2$table
 FPR1 <- tablica[1,2]/sum(tablica[1,])
 FPR2 <- tablica1[1,2]/sum(tablica1[1,])
-
 TPR1 <- tablica[2,2]/sum(tablica[2,])
 TPR2 <- tablica1[2,2]/sum(tablica1[2,])
-
-
 plot(function(x)x,xlim=c(0,1),ylim=c(0,1),xlab="False Positive Rate",
 ylab="True Positive Rate",col="black")
-
 points(FPR1,TPR1,col="red")
 points(FPR2,TPR2,col="yellow")
-
-
 rm(list = ls())
-
 library(pROC)
 library(ggplot2)
-
 sim_dat <- read.csv('dane/letter-recognition.data', header = T)
 head(sim_dat)
 sim_roc <- roc(response = sim_dat$T,
                predictor = sim_dat$X2,
                levels = c('A','W'))
 auc(sim_roc)
-
 ggroc(sim_roc, legacy.axes = TRUE) +
   labs(x = 'False-positive rate', y = 'True-positive rate', title = 'Simulated ROC curve') +
   annotate('text', x = .5, y = .5, label = paste0('AUC: ',round(auc(sim_roc), digits = 2)))
+
 ```
 

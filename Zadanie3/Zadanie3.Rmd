@@ -1,0 +1,164 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+#1.Wczytać zestaw danych, który odpowiada ostatniej cyfrze z numeru albumu, do systemu R.
+#Ladowanie bibliotek
+library(caret)
+mydata <- read.csv("dane/letter-recognition.data", stringsAsFactors = FALSE)
+colnames(mydata) <- c("T","X1","X2","X3","X4","X5","X6","X7","X8","X9","X10","X11","X12","X13","X14","X15","X16")
+names <- c("X1","X2","X3","X4","X5","X6","X7","X8","X9","X10","X11","X12","X13","X14","X15","X16")
+mydata$T <- factor(mydata$T, levels = c("A", "B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"),
+                         labels = c("A", "B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"))
+```
+
+```{r}
+#2. Wykonać badania eksploracyjne (EDA, ang. exploratory data analysis) zestawu danych.
+#• Wyświetlić na ekranie pierwszych 15 linii.
+head(mydata,15)
+# • Wyznaczyć wymiary i strukturę tablicy danych.
+dim(mydata)
+sapply(mydata,class)
+# 19999    17
+# • Wyznaczyć jaką część zestawu danych stanowią dane każdej klasy.
+table(mydata$T)
+percentage <- prop.table(table(mydata$T)) * 100
+cbind(freq=table(mydata$T), percentage=percentage)
+# • Wyznaczyć standardowe odchylenie kwadratowe, skośność i kurtozę dla każdej cechy liczbowej.
+
+summary(mydata)
+sapply(mydata, class)
+#mydata <- replace(mydata, is.na(mydata), 0)
+
+```
+
+```{r}
+#3. Wyznaczyć cechę decyzyjną i cechy objaśniające.
+#Cecha decyzyjna to T czyli 1) a reszta to objaśniająca X1-X16
+```
+
+```{r}
+#4. Wykonać wizualizację danych.
+# • Stworzyć histogramy dla cech typu numerycznego i wykresy słupkowe dla typów jakościowych.
+#• Zbudować diagram analizy korelacji.
+#• Skonstruować wykresy pudełkowe dla atrybutów typu liczbowego
+#• Skonstruować wykresy rozrzutu dla cech typu numerycznego w zależności od klas
+#• Sporządzić wykresy rozkładu empirycznego (gęstości) dla cech typów liczbowych w zależności od klas
+x <- mydata[,2:17]
+y <- mydata[,1]
+print(x)
+print(y)
+plot(y)
+# boxplot for each attribute on one image
+par(mfrow=c(2,8))
+for(i in 1:16) {
+  boxplot(x[,i], main=names[i])
+}
+
+
+# Multivariate Plots
+# scatterplot matrix
+#featurePlot(x=x, y=y, plot="ellipse")
+
+# box and whisker plots for each attribute
+featurePlot(x=x, y=y, plot="box",layout = c(1, 1))
+
+# density plots for each attribute by class value
+scales <- list(x=list(relation="free"), y=list(relation="free"))
+featurePlot(x=x, y=y, plot="density", scales=scales)
+```
+
+```{r}
+#5.Podzielić zbiór danych na uczący i testowy (75% w zbiorze uczącym).
+mydata_train <- mydata[1:800, ]
+mydata_test <- mydata[801:1001, ]
+trainControl <- trainControl(method="cv", number=10)
+metric <- "Accuracy"
+```
+
+```{r}
+#6.Używając biblioteki caret wykonać klasyfikację za pomocą algorytmów:
+# Klasyfikator naiwny Bayesa
+#Bayes robi errory
+#set.seed(7)
+#fit.nb <- train(T~., data=mydata, method="nb", metric=metric,
+#                 trControl=trainControl)
+# Drzew klasyfikacyjnych
+set.seed(7)
+
+fit.cart <- train(T~., data=mydata, method="rpart", metric=metric,
+                  trControl=trainControl)
+# K najbliższych sąsiadów
+set.seed(7)
+fit.knn <- train(T~., data=mydata, method="knn", metric=metric,
+                 trControl=trainControl)
+# Maszyn wektorów nośnych
+#set.seed(7)
+#fit.svm <- train(T~., data=mydata, method="svmRadial", metric=metric,
+#                 trControl=trainControl)
+
+#  Lasów losowych
+set.seed(7)
+fit.nnet <- train(T~., data=mydata, method="nnet", metric=metric,
+                trControl=trainControl)
+# density plots for each attribute by class value
+scales <- list(x=list(relation="free"), y=list(relation="free"))
+featurePlot(x=x, y=y, plot="density", scales=scales)
+
+# summarize accuracy of models
+results <- resamples(list(cart=fit.cart, knn=fit.knn, nnet=fit.nnet))
+summary(results)
+```
+```{r}
+# density plots for each attribute by class value
+scales <- list(x=list(relation="free"), y=list(relation="free"))
+featurePlot(x=x, y=y, plot="density", scales=scales)
+
+### Evaluate Some Algorithms ###
+
+# Run algorithms using 10-fold cross validation
+trainControl <- trainControl(method="cv", number=10)
+metric <- "Accuracy"
+
+library(klaR)
+## Build Models ##
+# Naive Bayes
+set.seed(7)
+#fit.nb <- train(T~., data=mydata, method="nb", metric=metric,
+ #                trControl=trainControl)
+# Decision Tree
+set.seed(7)
+fit.cart <- train(T~., data=mydata, method="rpart", metric=metric,
+                  trControl=trainControl)
+# KNN
+set.seed(7)
+fit.knn <- train(T~., data=mydata, method="knn", metric=metric,
+                 trControl=trainControl)
+# SVM
+set.seed(7)
+fit.svm <- train(T~., data=mydata, method="svmRadial", metric=metric,
+                 trControl=trainControl)
+
+# Neural Network
+set.seed(7)
+fit.nnet <- train(T~., data=mydata, method="nnet", metric=metric,
+                trControl=trainControl)
+
+# summarize accuracy of models
+results <- resamples(list(cart=fit.cart, knn=fit.knn, svm=fit.svm, nnet=fit.nnet))
+summary(results)
+
+# compare accuracy of models
+dotplot(results)
+
+# summarize Best Model
+print(fit.knn)
+
+### MAKE PREDICTIONS ###
+# estimate skill of KNN on the validation dataset
+predictions <- predict(fit.knn, validation)
+predictions <- factor(predictions)
+validation$T <- factor(validation$T)
+confusionMatrix(predictions, validation$T)
+```
